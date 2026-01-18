@@ -1,7 +1,0 @@
-Formula
-dist
-docs
-rsctl
-scripts
-src
-tests

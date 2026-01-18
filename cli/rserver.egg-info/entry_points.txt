@@ -1,2 +1,0 @@
-[console_scripts]
-rserver = rsctl.cli.commands:main
