@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rserver"
+version = "1.0.0"
+description = "Remote Server Control - CLI multiplataforma para gerenciar serviços remotos"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "RSERVER Team", email = "team@rserver.dev"}
+]
+keywords = [
+    "cli",
+    "server",
+    "remote",
+    "services",
+    "management",
+    "systemd",
+    "docker",
+    "automation"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+
+[project.scripts]
+rserver = "rsctl.cli.commands:main"
+
+[project.urls]
+Homepage = "https://github.com/KelvinSilvaDev/rserver"
+Documentation = "https://github.com/KelvinSilvaDev/rserver/blob/main/DOCUMENTACAO.md"
+Repository = "https://github.com/KelvinSilvaDev/rserver"
+"Bug Tracker" = "https://github.com/KelvinSilvaDev/rserver/issues"
+Changelog = "https://github.com/KelvinSilvaDev/rserver/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "flake8>=6.1.0",
+    "black>=23.9.0",
+    "mypy>=1.5.0",
+]
+
+[tool.setuptools]
+packages = ["rsctl"]
+
+[tool.setuptools.package-data]
+rsctl = ["services.json"]
+
+[tool.black]
+line-length = 100
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

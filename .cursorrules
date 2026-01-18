@@ -1,0 +1,353 @@
+# 🎯 Remote Server Control - Cursor Rules
+
+## 📋 Visão Geral do Projeto
+
+Este é um projeto **open-source** e **multiplataforma** de CLI para gerenciamento de serviços remotos. O foco está em:
+- **Multiplataforma**: Funciona em Linux, macOS e Windows
+- **Open Source**: Fácil de contribuir, bem documentado
+- **Robustez**: Tratamento de erros completo, validações, retry logic
+- **Escalabilidade**: Arquitetura modular, extensível, plugin-ready
+- **Performance**: Cache inteligente, operações assíncronas quando possível
+- **UX/DevEx**: Interface clara, feedback rico, documentação completa
+- **Qualidade**: Testes, type hints, linting, CI/CD
+
+## 🏗️ Arquitetura
+
+### Estrutura de Diretórios
+
+```
+cli/
+├── rsctl.py              # Entry point principal
+├── src/                  # Código fonte modular
+│   ├── __init__.py
+│   ├── core/             # Core functionality
+│   │   ├── __init__.py
+│   │   ├── manager.py    # ServiceManager principal
+│   │   ├── config.py     # Gerenciamento de configuração
+│   │   ├── cache.py      # Sistema de cache
+│   │   └── validator.py  # Validações
+│   ├── services/         # Implementações de serviços
+│   │   ├── __init__.py
+│   │   ├── base.py       # Classe base abstrata
+│   │   ├── ssh.py
+│   │   ├── docker.py
+│   │   └── systemd.py
+│   ├── utils/            # Utilitários
+│   │   ├── __init__.py
+│   │   ├── logger.py     # Sistema de logging
+│   │   ├── colors.py     # Cores e formatação
+│   │   ├── exceptions.py # Exceções customizadas
+│   │   └── helpers.py    # Funções auxiliares
+│   └── cli/              # Interface CLI
+│       ├── __init__.py
+│       ├── commands.py   # Comandos CLI
+│       └── parser.py     # Argument parsing
+├── tests/                # Testes
+│   ├── __init__.py
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/
+├── config/               # Configurações
+│   ├── services.json
+│   └── defaults.json
+└── scripts/              # Scripts auxiliares
+```
+
+## 🎨 Padrões de Código
+
+### Python
+
+- **Type Hints**: Sempre usar type hints completos
+- **Docstrings**: Google style docstrings em todas as funções/classes públicas
+- **Error Handling**: Usar exceções customizadas, nunca silenciar erros
+- **Logging**: Usar logging module, nunca print() para logs
+- **Async**: Considerar async/await para operações I/O quando apropriado
+- **Testing**: Cobertura mínima de 80%, testes unitários e de integração
+
+### Exemplo de Classe
+
+```python
+from typing import Optional, Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ServiceManager:
+    """
+    Gerencia serviços do servidor remoto.
+    
+    Attributes:
+        config: Configuração carregada dos serviços
+        cache: Sistema de cache para otimização
+    """
+    
+    def __init__(self, config_path: Optional[Path] = None) -> None:
+        """Inicializa o gerenciador de serviços.
+        
+        Args:
+            config_path: Caminho opcional para arquivo de configuração
+            
+        Raises:
+            ConfigError: Se a configuração for inválida
+        """
+        self.config = self._load_config(config_path)
+        self.cache = CacheManager()
+        logger.info("ServiceManager inicializado")
+    
+    def start_service(self, service_name: str, timeout: int = 30) -> bool:
+        """Inicia um serviço específico.
+        
+        Args:
+            service_name: Nome do serviço a iniciar
+            timeout: Timeout em segundos para operação
+            
+        Returns:
+            True se o serviço foi iniciado com sucesso
+            
+        Raises:
+            ServiceNotFoundError: Se o serviço não existe
+            ServiceStartError: Se falhar ao iniciar
+        """
+        # Implementação
+```
+
+## 🔍 Validações e Tratamento de Erros
+
+### Sempre Validar
+
+1. **Input do usuário**: Validar argumentos CLI
+2. **Configuração**: Validar JSON de configuração
+3. **Dependências**: Verificar se comandos/tools existem
+4. **Permissões**: Verificar permissões antes de executar
+5. **Estado**: Verificar estado atual antes de operações
+
+### Exceções Customizadas
+
+```python
+# utils/exceptions.py
+class RSCTLError(Exception):
+    """Base exception para rsctl"""
+    pass
+
+class ConfigError(RSCTLError):
+    """Erro de configuração"""
+    pass
+
+class ServiceNotFoundError(RSCTLError):
+    """Serviço não encontrado"""
+    pass
+
+class ServiceStartError(RSCTLError):
+    """Erro ao iniciar serviço"""
+    pass
+```
+
+### Retry Logic
+
+Sempre implementar retry com backoff exponencial para operações de rede/I/O:
+
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10)
+)
+def check_service_health(self, service_name: str) -> bool:
+    # Implementação com retry
+```
+
+## 📊 Logging
+
+### Estrutura de Logging
+
+```python
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Configurar logger
+logger = logging.getLogger('rsctl')
+logger.setLevel(logging.DEBUG)
+
+# Handler para arquivo
+file_handler = RotatingFileHandler(
+    'logs/rsctl.log',
+    maxBytes=10*1024*1024,  # 10MB
+    backupCount=5
+)
+file_handler.setFormatter(
+    logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+)
+
+# Handler para console (apenas INFO+)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(CustomFormatter())
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+```
+
+### Níveis de Log
+
+- **DEBUG**: Informações detalhadas para debugging
+- **INFO**: Operações normais (start, stop, status)
+- **WARNING**: Situações que podem causar problemas
+- **ERROR**: Erros que não impedem execução
+- **CRITICAL**: Erros que impedem execução
+
+## ⚡ Performance
+
+### Cache
+
+- Cache de status de serviços (TTL: 5 segundos)
+- Cache de configuração (até reload manual)
+- Cache de resultados de comandos (TTL: 2 segundos)
+
+### Otimizações
+
+- Verificar status em paralelo quando possível
+- Usar comandos eficientes (ex: `docker ps --format` vs `docker ps | grep`)
+- Timeouts apropriados para evitar hangs
+- Lazy loading de configurações pesadas
+
+## 🧪 Testes
+
+### Estrutura
+
+- **Unit Tests**: Testar funções isoladamente
+- **Integration Tests**: Testar interação entre componentes
+- **Mocking**: Mockar subprocess, filesystem, network
+
+### Exemplo
+
+```python
+import pytest
+from unittest.mock import Mock, patch
+from rsctl.core.manager import ServiceManager
+
+class TestServiceManager:
+    @pytest.fixture
+    def manager(self):
+        return ServiceManager()
+    
+    @patch('rsctl.core.manager.subprocess.run')
+    def test_start_service_success(self, mock_run, manager):
+        mock_run.return_value = Mock(returncode=0)
+        assert manager.start_service('ssh') is True
+```
+
+## 📝 Documentação
+
+### Docstrings
+
+- Sempre documentar classes públicas
+- Documentar parâmetros, retornos, exceções
+- Incluir exemplos quando apropriado
+
+### README
+
+- Manter README atualizado
+- Incluir exemplos de uso
+- Documentar configurações avançadas
+
+## 🔧 Ferramentas de Desenvolvimento
+
+### Pre-commit Hooks
+
+- black (formatação)
+- flake8 (linting)
+- mypy (type checking)
+- pytest (testes)
+
+### Makefile
+
+Criar Makefile com comandos comuns:
+- `make test`: Rodar testes
+- `make lint`: Verificar código
+- `make format`: Formatar código
+- `make install`: Instalar CLI
+
+## 🚀 Quando Adicionar Novos Recursos
+
+1. **Planejar**: Documentar design antes de implementar
+2. **Multiplataforma**: Considerar compatibilidade com todas plataformas
+3. **Testar**: Escrever testes primeiro (TDD quando possível)
+4. **Validar**: Validar input e estado
+5. **Logar**: Adicionar logs apropriados
+6. **Documentar**: Atualizar documentação (incluindo PLATAFORMAS.md se necessário)
+7. **Revisar**: Code review antes de merge
+
+## 🤝 Open Source
+
+### Ao Contribuir
+
+- Sempre considerar múltiplas plataformas
+- Documentar limitações (se houver)
+- Adicionar testes quando possível
+- Atualizar documentação relevante
+- Seguir padrões de código do projeto
+
+## 🎯 Prioridades
+
+1. **Robustez** > Features: Melhor ter menos features que funcionam bem
+2. **Clareza** > Cleverness: Código claro é melhor que código "esperto"
+3. **Performance** > Prematuro: Otimizar apenas quando necessário
+4. **Testes** > Perfeição: Testes são mais importantes que código perfeito
+
+## 🌐 Multiplataforma
+
+### Sempre Considerar
+
+1. **Detecção de Plataforma**: Usar `PlatformDetector` para detectar OS
+2. **Comandos Adaptativos**: Usar comandos apropriados por plataforma
+3. **Caminhos**: Sempre usar `pathlib.Path` para compatibilidade
+4. **Sudo**: Apenas em Unix-like (Linux/macOS), não em Windows
+5. **Testar**: Testar em múltiplas plataformas quando possível
+
+### Exemplo de Código Multiplataforma
+
+```python
+from src.utils.platform import PlatformDetector
+
+if PlatformDetector.is_windows():
+    # Código Windows
+    cmd = ["netstat", "-an"]
+elif PlatformDetector.is_macos():
+    # Código macOS
+    cmd = ["lsof", "-i", f":{port}"]
+else:
+    # Código Linux
+    cmd = ["ss", "-lntp"]
+```
+
+### Comandos por Plataforma
+
+| Funcionalidade | Linux | macOS | Windows |
+|----------------|-------|-------|---------|
+| Verificar porta | `ss -lntp` | `lsof -i :port` | `netstat -an` |
+| Verificar processo | `pgrep -f` | `pgrep -f` | `tasklist` |
+| Gerenciar serviços | `systemctl` | `launchctl` | `sc` / PowerShell |
+| Sudo | `sudo` | `sudo` | Não necessário |
+
+## 🔐 Segurança
+
+- Nunca executar comandos não validados
+- Validar todos os inputs do usuário
+- Usar subprocess com shell=False quando possível
+- Sanitizar output antes de exibir
+- Não logar informações sensíveis (senhas, tokens)
+- Considerar permissões por plataforma (sudo vs UAC)
+
+## 📦 Dependências
+
+- Manter dependências mínimas
+- Usar versões específicas (requirements.txt)
+- Documentar por que cada dependência é necessária
+- Atualizar regularmente para segurança
+
+## 🌐 Internacionalização (Futuro)
+
+- Preparar strings para i18n
+- Usar constantes para mensagens
+- Considerar gettext no futuro

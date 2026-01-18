@@ -1,0 +1,13 @@
+# Logs
+logs/
+*.log
+
+# Credenciais
+*.pem
+*.key
+credentials.json
+
+# Configurações locais
+.env
+config.local.yml
+

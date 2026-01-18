@@ -1,0 +1,28 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  update-homebrew:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          URL="https://github.com/${{ github.repository }}/archive/${{ github.event.release.tag_name }}.tar.gz"
+          SHA=$(curl -sL "$URL" | shasum -a 256 | cut -d' ' -f1)
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+      
+      - name: Update Homebrew Formula
+        run: |
+          # Aqui você atualizaria a formula no repositório homebrew-rserver
+          # Exemplo usando git para fazer commit e push
+          echo "Atualizar formula com SHA256: ${{ steps.sha256.outputs.sha256 }}"
