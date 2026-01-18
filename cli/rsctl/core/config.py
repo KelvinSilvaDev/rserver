@@ -51,13 +51,14 @@ class ConfigManager:
                     # Retornar caminho absoluto do arquivo no pacote
                     with as_file(config_file) as path:
                         return Path(path)
-            except (ModuleNotFoundError, FileNotFoundError):
+            except (ModuleNotFoundError, FileNotFoundError, TypeError):
                 pass
         
         # Fallback: procurar no diretório de desenvolvimento
-        # Caminho relativo ao arquivo atual
-        base_dir = Path(__file__).parent.parent.parent.parent
-        dev_path = base_dir / "cli" / "services.json"
+        # Caminho relativo ao arquivo atual (rsctl/core/config.py)
+        # Subir 3 níveis: rsctl/core -> rsctl -> cli -> raiz
+        base_dir = Path(__file__).parent.parent.parent
+        dev_path = base_dir / "services.json"
         if dev_path.exists():
             return dev_path
         

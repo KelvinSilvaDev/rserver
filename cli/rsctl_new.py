@@ -7,12 +7,12 @@ Versão refatorada com arquitetura profissional
 import sys
 from pathlib import Path
 
-# Adicionar src ao path
-src_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_path))
+# Adicionar rsctl ao path
+rsctl_path = Path(__file__).parent / "rsctl"
+sys.path.insert(0, str(rsctl_path))
 
-from src.cli.parser import create_parser
-from src.cli.commands import handle_command
+from rsctl.cli.parser import create_parser
+from rsctl.cli.commands import handle_command
 
 
 def main():

@@ -12,7 +12,7 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="rserver",
-    version="1.0.0",
+    version="0.0.2",
     description="Remote Server Control - CLI multiplataforma para gerenciar serviços remotos",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -35,10 +35,10 @@ setup(
         "Operating System :: OS Independent",
         "Topic :: System :: Systems Administration",
     ],
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    packages=find_packages(where=".", include=["rsctl", "rsctl.*"]),
+    package_dir={"": "."},
     package_data={
-        "rsctl": ["../services.json"],
+        "rsctl": ["services.json"],
     },
     python_requires=">=3.7",
     install_requires=[

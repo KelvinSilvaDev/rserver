@@ -1,5 +1,5 @@
 include README.md
 include LICENSE
 include CHANGELOG.md
-recursive-include cli/services.json
-recursive-include cli/scripts *.sh
+include services.json
+recursive-include scripts *.sh

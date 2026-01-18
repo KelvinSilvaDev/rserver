@@ -1,0 +1,72 @@
+{
+  "start_order": [
+    "ssh",
+    "tailscale",
+    "ollama",
+    "webui",
+    "comfyui",
+    "cloudflare"
+  ],
+  "services": {
+    "ssh": {
+      "display_name": "SSH Server",
+      "description": "Servidor SSH para acesso remoto",
+      "port": 22,
+      "check_type": "systemd",
+      "needs_sudo": true,
+      "start_cmd": ["service", "ssh", "start"],
+      "stop_cmd": ["service", "ssh", "stop"]
+    },
+    "tailscale": {
+      "display_name": "Tailscale VPN",
+      "description": "VPN mesh para acesso seguro",
+      "check_type": "process",
+      "process_name": "tailscaled",
+      "needs_sudo": false,
+      "start_cmd": ["tailscale", "up"],
+      "stop_cmd": ["tailscale", "down"]
+    },
+    "ollama": {
+      "display_name": "Ollama",
+      "description": "Servidor de modelos de IA locais",
+      "port": 11434,
+      "url": "http://localhost:11434",
+      "check_type": "http",
+      "check_url": "http://localhost:11434/api/tags",
+      "needs_sudo": true,
+      "start_cmd": ["systemctl", "start", "ollama"],
+      "stop_cmd": ["systemctl", "stop", "ollama"]
+    },
+    "webui": {
+      "display_name": "Open WebUI",
+      "description": "Interface web para interagir com modelos de IA",
+      "port": 3000,
+      "url": "http://localhost:3000",
+      "check_type": "docker",
+      "container_name": "open-webui",
+      "needs_sudo": false,
+      "start_script": "scripts/start-webui.sh",
+      "stop_cmd": ["docker", "stop", "open-webui"]
+    },
+    "comfyui": {
+      "display_name": "ComfyUI",
+      "description": "Interface web para geração de imagens com IA",
+      "port": 8188,
+      "url": "http://localhost:8188",
+      "check_type": "http",
+      "check_url": "http://localhost:8188",
+      "needs_sudo": false,
+      "start_script": "scripts/start-comfyui.sh",
+      "stop_cmd": ["docker", "stop", "comfyui"]
+    },
+    "cloudflare": {
+      "display_name": "Cloudflare Tunnels",
+      "description": "Túneis para acesso remoto sem abrir portas",
+      "check_type": "process",
+      "process_name": "cloudflared tunnel",
+      "needs_sudo": false,
+      "start_script": "scripts/start-cloudflare.sh",
+      "stop_cmd": ["pkill", "-f", "cloudflared tunnel"]
+    }
+  }
+}
